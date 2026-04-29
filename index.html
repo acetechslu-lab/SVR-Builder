@@ -538,11 +538,15 @@ body {
 
 /* ── PRINT ─────────────────────────────────── */
 @media print {
-  @page { margin:.35in; size:letter; }
+  /* margin:0 suppresses Chrome's built-in date/time header and URL footer */
+  @page { margin:0; size:letter; }
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-  body { background:#fff !important; padding:0 !important; margin:0 !important; }
+  /* Re-introduce the page margins via body padding so content isn't edge-to-edge */
+  body { background:#fff !important; padding:.35in !important; margin:0 !important; }
   .app-header, .voice-bar, .form-col, .action-bar,
   .mobile-bar, .toast, .v-overlay, .preview-bar { display:none !important; }
+  /* Hide any elements injected directly into <body> by browser extensions (e.g. Emily) */
+  body > *:not(.main-wrap):not(script):not(style):not(link):not(meta) { display:none !important; }
   .main-wrap { display:block !important; padding:0 !important; }
   .preview-col {
     display:block !important;
