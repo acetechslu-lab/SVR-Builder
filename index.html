@@ -448,7 +448,7 @@ body {
 .rpt-list { padding-left:1.3rem; margin:0; }
 .rpt-list li { font-size:12px; line-height:1.45; margin-bottom:.2rem; }
 .rpt-sig {
-  margin-top:1rem; padding-top:.6rem;
+  margin-top:5rem; padding-top:.6rem;
   border-top:1px dashed #bed3e6;
   font-size:11px;
 }
@@ -1210,7 +1210,26 @@ function liveUpdate() {
 /* ─── PDF ────────────────────────────────────── */
 function exportPDF() {
   updatePreview();
-  setTimeout(function(){ window.print(); }, 300);
+  var ref = document.getElementById('projectRef').value.trim();
+  var filename = (ref || 'SVR-Report').replace(/[^a-zA-Z0-9\-_]/g, '_') + '.pdf';
+
+  if (typeof html2pdf === 'undefined') {
+    toast('⏳ PDF library still loading — please try again in a moment.');
+    return;
+  }
+
+  toast('⏳ Generating PDF…', 6000);
+  var element = document.getElementById('reportContainer');
+  var opt = {
+    margin:      [0.35, 0.35, 0.35, 0.35],
+    filename:    filename,
+    image:       { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF:       { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save().then(function() {
+    toast('✅ Saved as ' + filename);
+  });
 }
 
 /* ─── AUTO-SAVE ──────────────────────────────── */
@@ -1370,5 +1389,6 @@ function init() {
 
 window.addEventListener('load', init);
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
