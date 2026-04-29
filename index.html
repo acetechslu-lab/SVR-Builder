@@ -1209,7 +1209,6 @@ function liveUpdate() {
 
 /* ─── PDF ────────────────────────────────────── */
 function exportPDF() {
-  updatePreview();
   var ref = document.getElementById('projectRef').value.trim();
   var filename = (ref || 'SVR-Report').replace(/[^a-zA-Z0-9\-_]/g, '_') + '.pdf';
 
@@ -1219,17 +1218,43 @@ function exportPDF() {
   }
 
   toast('⏳ Generating PDF…', 6000);
-  var element = document.getElementById('reportContainer');
+
+  // Build a fresh off-screen element — html2canvas cannot reliably
+  // capture elements inside overflow:hidden / scrollable containers.
+  var wrapper = document.createElement('div');
+  wrapper.className = 'report-doc';
+  wrapper.innerHTML = buildReport();
+  wrapper.style.cssText = [
+    'position:absolute',
+    'left:-9999px',
+    'top:0',
+    'width:750px',
+    'background:#ffffff',
+    'padding:24px',
+    'font-family:"Century Gothic","Segoe UI",sans-serif',
+    'font-size:12px',
+    'line-height:1.5',
+    'color:#1a2c3a'
+  ].join(';');
+  document.body.appendChild(wrapper);
+
   var opt = {
     margin:      [0.35, 0.35, 0.35, 0.35],
     filename:    filename,
     image:       { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 800 },
     jsPDF:       { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
-  html2pdf().set(opt).from(element).save().then(function() {
-    toast('✅ Saved as ' + filename);
-  });
+
+  html2pdf().set(opt).from(wrapper).save()
+    .then(function() {
+      document.body.removeChild(wrapper);
+      toast('✅ Saved as ' + filename);
+    })
+    .catch(function() {
+      document.body.removeChild(wrapper);
+      toast('❌ PDF generation failed — please try again.');
+    });
 }
 
 /* ─── AUTO-SAVE ──────────────────────────────── */
